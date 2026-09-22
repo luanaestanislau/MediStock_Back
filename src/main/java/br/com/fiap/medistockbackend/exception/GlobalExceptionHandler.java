@@ -1,0 +1,60 @@
+package br.com.fiap.medistockbackend.exception;
+
+import jakarta.validation.ConstraintViolationException;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.time.LocalDateTime;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+@RestControllerAdvice
+public class GlobalExceptionHandler {
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<Map<String, Object>> handleValidacao(MethodArgumentNotValidException ex) {
+        Map<String, String> campos = new LinkedHashMap<>();
+        ex.getBindingResult().getFieldErrors().forEach(erro ->
+                campos.put(erro.getField(), erro.getDefaultMessage()));
+
+        return construirResposta(HttpStatus.BAD_REQUEST, "Erro de validacao", campos);
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<Map<String, Object>> handleConstraint(ConstraintViolationException ex) {
+        return construirResposta(HttpStatus.BAD_REQUEST, ex.getMessage(), null);
+    }
+
+    @ExceptionHandler(EmailCadastradoException.class)
+    public ResponseEntity<Map<String, Object>> handleEmailDuplicado(EmailCadastradoException ex) {
+        return construirResposta(HttpStatus.CONFLICT, ex.getMessage(), null);
+    }
+
+    @ExceptionHandler({CredenciaisInvalidasException.class, BadCredentialsException.class})
+    public ResponseEntity<Map<String, Object>> handleCredenciaisInvalidas(RuntimeException ex) {
+        return construirResposta(HttpStatus.UNAUTHORIZED, "E-mail institucional ou senha invalidos", null);
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<Map<String, Object>> handleGenerico(Exception ex) {
+        return construirResposta(HttpStatus.INTERNAL_SERVER_ERROR, "Erro interno inesperado", null);
+    }
+
+    private ResponseEntity<Map<String, Object>> construirResposta(HttpStatus status, String mensagem, Map<String, String> campos) {
+        Map<String, Object> corpo = new LinkedHashMap<>();
+        corpo.put("timestamp", LocalDateTime.now());
+        corpo.put("status", status.value());
+        corpo.put("erro", status.getReasonPhrase());
+        corpo.put("mensagem", mensagem);
+        if (campos != null && !campos.isEmpty()) {
+            corpo.put("campos", campos);
+        }
+        return ResponseEntity.status(status).body(corpo);
+    }
+}
+
+
