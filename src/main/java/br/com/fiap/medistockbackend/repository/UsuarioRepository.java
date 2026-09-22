@@ -1,0 +1,12 @@
+package br.com.fiap.medistockbackend.repository;
+
+import br.com.fiap.medistockbackend.model.Usuario;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.Optional;
+
+public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
+     Optional<Usuario> findByEmailInstitucionalIgnoreCase(String emailInstitucional);
+
+    boolean existsByEmailInstitucionalIgnoreCase(String emailInstitucional);
+}
