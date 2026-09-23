@@ -1,6 +1,7 @@
 package br.com.fiap.medistockbackend.dto;
 
 import java.util.List;
+import jakarta.validation.constraints.Positive;
 
 public class IaDtos {
     
@@ -70,5 +71,7 @@ public class IaDtos {
             List<CandidatoHospitalResponse> candidatos,
             String justificativaIA
     ) {}
-}
 
+    /** Confirma uma sugestao da IA. Sem quantidade, transfere o saldo atual do item. */
+    public record ConfirmarRedistribuicaoRequest(@Positive Integer quantidade) {}
+}

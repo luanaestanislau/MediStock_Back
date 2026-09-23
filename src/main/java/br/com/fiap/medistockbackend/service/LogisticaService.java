@@ -4,6 +4,8 @@ import br.com.fiap.medistockbackend.dto.LogisticaDtos.*;
 import br.com.fiap.medistockbackend.exception.ResourceNotFoundException;
 import br.com.fiap.medistockbackend.model.*;
 import br.com.fiap.medistockbackend.repository.EntregaRepository;
+import br.com.fiap.medistockbackend.repository.HospitalRepository;
+import br.com.fiap.medistockbackend.repository.ItemEstoqueRepository;
 import br.com.fiap.medistockbackend.repository.TransferenciaRepository;
 import br.com.fiap.medistockbackend.util.GeoUtils;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +20,8 @@ public class LogisticaService {
 
     private final EntregaRepository entregaRepository;
     private final TransferenciaRepository transferenciaRepository;
+    private final HospitalRepository hospitalRepository;
+    private final ItemEstoqueRepository itemEstoqueRepository;
     private final ItemEstoqueService itemEstoqueService;
     private final HospitalService hospitalService;
 
@@ -56,6 +60,39 @@ public class LogisticaService {
 
     public List<TransferenciaResponse> listarTransferencias() {
         return transferenciaRepository.findAll().stream().map(TransferenciaResponse::fromEntity).toList();
+    }
+
+    /** Dados prontos para um mapa: marcadores de hospitais e linhas de transferencias em aberto. */
+    public LogisticaMapaResponse obterMapa() {
+        java.util.Map<Long, HospitalMapaPonto> hospitaisPorId = hospitalRepository.findAll().stream()
+                .collect(java.util.stream.Collectors.toMap(
+                        Hospital::getId,
+                        hospital -> new HospitalMapaPonto(
+                                hospital.getId(), hospital.getNome(), hospital.getCidade(),
+                                hospital.getLatitude(), hospital.getLongitude(),
+                                itemEstoqueRepository.findByHospitalId(hospital.getId()).stream()
+                                        .filter(item -> item.calcularNivel() == NivelEstoque.CRITICO)
+                                        .count()
+                        )
+                ));
+
+        List<TransferenciaMapaResponse> transferenciasAtivas = transferenciaRepository.findAll().stream()
+                .filter(transferencia -> transferencia.getStatus() == StatusLogistico.PENDENTE
+                        || transferencia.getStatus() == StatusLogistico.EM_ROTA)
+                .map(transferencia -> new TransferenciaMapaResponse(
+                        transferencia.getId(),
+                        transferencia.getItemEstoque().getNome(),
+                        hospitaisPorId.get(transferencia.getHospitalOrigem().getId()),
+                        hospitaisPorId.get(transferencia.getHospitalDestino().getId()),
+                        transferencia.getDistanciaKm(),
+                        transferencia.getTempoEstimadoMinutos(),
+                        transferencia.getStatus(),
+                        transferencia.isGeradoPorIa(),
+                        transferencia.getMotivo()
+                ))
+                .toList();
+
+        return new LogisticaMapaResponse(List.copyOf(hospitaisPorId.values()), transferenciasAtivas);
     }
 
     @Transactional

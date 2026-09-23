@@ -34,6 +34,11 @@ public class GlobalExceptionHandler {
         return construirResposta(HttpStatus.CONFLICT, ex.getMessage(), null);
     }
 
+    @ExceptionHandler(BusinessRuleException.class)
+    public ResponseEntity<Map<String, Object>> handleRegraDeNegocio(BusinessRuleException ex) {
+        return construirResposta(HttpStatus.BAD_REQUEST, ex.getMessage(), null);
+    }
+
     @ExceptionHandler({CredenciaisInvalidasException.class, BadCredentialsException.class})
     public ResponseEntity<Map<String, Object>> handleCredenciaisInvalidas(RuntimeException ex) {
         return construirResposta(HttpStatus.UNAUTHORIZED, "E-mail institucional ou senha invalidos", null);
@@ -56,5 +61,4 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(status).body(corpo);
     }
 }
-
 

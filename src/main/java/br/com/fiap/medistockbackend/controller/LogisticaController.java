@@ -48,6 +48,12 @@ public class LogisticaController {
         return logisticaService.listarTransferencias();
     }
 
+    @GetMapping("/mapa")
+    @Operation(summary = "Retorna hospitais geolocalizados e rotas das transferencias pendentes ou em rota")
+    public LogisticaMapaResponse mapa() {
+        return logisticaService.obterMapa();
+    }
+
     @PostMapping("/transferencias")
     @Operation(summary = "Registra manualmente uma transferencia entre dois hospitais")
     public ResponseEntity<TransferenciaResponse> criarTransferencia(@Valid @RequestBody TransferenciaRequest request) {
@@ -60,5 +66,4 @@ public class LogisticaController {
         return logisticaService.atualizarStatusTransferencia(id, status);
     }
 }
-
 

@@ -3,12 +3,16 @@ package br.com.fiap.medistockbackend.service;
 import br.com.fiap.medistockbackend.dto.IaDtos.CandidatoHospitalResponse;
 import br.com.fiap.medistockbackend.dto.IaDtos.RedistribuicaoResponse;
 import br.com.fiap.medistockbackend.dto.IaDtos.RotaSugeridaResponse;
+import br.com.fiap.medistockbackend.dto.LogisticaDtos.TransferenciaResponse;
+import br.com.fiap.medistockbackend.exception.BusinessRuleException;
 import br.com.fiap.medistockbackend.exception.ResourceNotFoundException;
 import br.com.fiap.medistockbackend.model.Hospital;
 import br.com.fiap.medistockbackend.model.HistoricoConsumo;
 import br.com.fiap.medistockbackend.model.ItemEstoque;
+import br.com.fiap.medistockbackend.model.NivelEstoque;
 import br.com.fiap.medistockbackend.repository.HistoricoConsumoRepository;
 import br.com.fiap.medistockbackend.repository.HospitalRepository;
+import br.com.fiap.medistockbackend.repository.ItemEstoqueRepository;
 import br.com.fiap.medistockbackend.util.GeoUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -25,8 +29,17 @@ public class RedistribuicaoService {
 
     private final HospitalRepository hospitalRepository;
     private final HistoricoConsumoRepository historicoConsumoRepository;
+    private final ItemEstoqueRepository itemEstoqueRepository;
     private final ItemEstoqueService itemEstoqueService;
     private final GeminiClient geminiClient;
+    private final LogisticaService logisticaService;
+
+    public List<RedistribuicaoResponse> sugerirTodos() {
+        return itemEstoqueRepository.findByAltoCustoBaixaDemandaTrue().stream()
+                .filter(item -> item.calcularNivel() != NivelEstoque.NORMAL)
+                .map(item -> sugerirMelhorHospital(item.getId()))
+                .toList();
+    }
 
     public RedistribuicaoResponse sugerirMelhorHospital(Long itemEstoqueId) {
         ItemEstoque item = itemEstoqueService.buscarEntidade(itemEstoqueId);
@@ -70,6 +83,33 @@ public class RedistribuicaoService {
                 hospitalIdeal.getId(), hospitalIdeal.getNome(),
                 precisaTransferir, rota, candidatos, justificativa
         );
+    }
+
+    /** Converte a recomendacao calculada pela IA em uma transferencia rastreavel. */
+    public TransferenciaResponse confirmarSugestao(Long itemEstoqueId, Integer quantidadeSolicitada) {
+        ItemEstoque item = itemEstoqueService.buscarEntidade(itemEstoqueId);
+        if (!item.isAltoCustoBaixaDemanda()) {
+            throw new BusinessRuleException("A redistribuicao por IA e exclusiva para insumos de alto custo e baixa demanda");
+        }
+
+        RedistribuicaoResponse sugestao = sugerirMelhorHospital(itemEstoqueId);
+        if (!sugestao.necessitaTransferencia() || sugestao.rotaSugerida() == null) {
+            throw new BusinessRuleException("O insumo ja esta armazenado no hospital recomendado pela IA");
+        }
+
+        int quantidade = quantidadeSolicitada == null ? item.getQuantidadeAtual() : quantidadeSolicitada;
+        if (quantidade <= 0 || quantidade > item.getQuantidadeAtual()) {
+            throw new BusinessRuleException("A quantidade deve ser maior que zero e nao pode exceder o saldo atual do item");
+        }
+
+        Hospital destino = hospitalRepository.findById(sugestao.hospitalIdealId())
+                .orElseThrow(() -> new ResourceNotFoundException("Hospital recomendado nao encontrado"));
+        RotaSugeridaResponse rota = sugestao.rotaSugerida();
+        String motivo = "Sugestao da IA: " + sugestao.justificativaIA();
+
+        return TransferenciaResponse.fromEntity(logisticaService.registrarTransferenciaDaIa(
+                item, item.getHospital(), destino, quantidade,
+                rota.distanciaKm(), rota.tempoEstimadoMinutos(), motivo));
     }
 
     private Map<Long, Double> calcularDemandaMediaPorHospital(ItemEstoque item, List<Hospital> hospitais) {
@@ -116,8 +156,8 @@ public class RedistribuicaoService {
         }
 
         String prompt = """
-                Voce é um assistente de logistica hospitalar do sistema MediStock.
-                Explique em até 3 frases, em português do Brasil, de forma direta e
+                Voce e um assistente de logistica hospitalar do sistema MediStock.
+                Explique em ate 3 frases, em portugues do Brasil, de forma direta e
                 profissional, por que o insumo '%s' (alto custo, baixa demanda)
                 deveria ser armazenado no hospital '%s' considerando o historico de
                 demanda da rede. %s

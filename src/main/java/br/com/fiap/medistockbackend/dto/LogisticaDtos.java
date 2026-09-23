@@ -7,6 +7,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 
 import java.time.LocalDate;
+import java.util.List;
 
 public class LogisticaDtos {
 
@@ -42,7 +43,7 @@ public class LogisticaDtos {
         }
     }
 
-    // Transferencias 
+    // Transferencias
 
     public record TransferenciaRequest(
             @NotNull Long itemEstoqueId,
@@ -79,4 +80,32 @@ public class LogisticaDtos {
             );
         }
     }
+
+    // Mapa (tela Logistica) 
+
+    public record HospitalMapaPonto(
+            Long id,
+            String nome,
+            String cidade,
+            Double latitude,
+            Double longitude,
+            long itensCriticos
+    ) {}
+
+    public record TransferenciaMapaResponse(
+            Long id,
+            String itemNome,
+            HospitalMapaPonto origem,
+            HospitalMapaPonto destino,
+            double distanciaKm,
+            double tempoEstimadoMinutos,
+            StatusLogistico status,
+            boolean geradoPorIa,
+            String motivo
+    ) {}
+
+    public record LogisticaMapaResponse(
+            List<HospitalMapaPonto> hospitais,
+            List<TransferenciaMapaResponse> transferenciasAtivas
+    ) {}
 }
