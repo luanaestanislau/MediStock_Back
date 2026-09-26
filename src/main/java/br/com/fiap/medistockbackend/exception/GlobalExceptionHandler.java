@@ -39,6 +39,11 @@ public class GlobalExceptionHandler {
         return construirResposta(HttpStatus.BAD_REQUEST, ex.getMessage(), null);
     }
 
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleRecursoNaoEncontrado(ResourceNotFoundException ex) {
+        return construirResposta(HttpStatus.NOT_FOUND, ex.getMessage(), null);
+    }
+
     @ExceptionHandler({CredenciaisInvalidasException.class, BadCredentialsException.class})
     public ResponseEntity<Map<String, Object>> handleCredenciaisInvalidas(RuntimeException ex) {
         return construirResposta(HttpStatus.UNAUTHORIZED, "E-mail institucional ou senha invalidos", null);
