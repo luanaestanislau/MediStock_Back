@@ -1,7 +1,3 @@
--- Execute este arquivo SOMENTE na conexao SYSTEM / FREEPDB1, com F5.
--- Substitua SUBSTITUA_POR_SUA_SENHA por uma senha sua antes de executar.
--- Prefira executar a versao editada na planilha SQL e manter este modelo sem senha.
--- Nao compartilhe nem versione a copia que contiver sua senha real.
 SET DEFINE OFF
 SET ECHO OFF
 WHENEVER SQLERROR EXIT FAILURE ROLLBACK
@@ -21,7 +17,7 @@ BEGIN
 END;
 /
 
-CREATE USER MEDISTOCK IDENTIFIED BY "SUBSTITUA_POR_SUA_SENHA"
+CREATE USER MEDISTOCK IDENTIFIED BY "SENHA123"
     DEFAULT TABLESPACE USERS
     TEMPORARY TABLESPACE TEMP
     QUOTA 100M ON USERS;

@@ -10,10 +10,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-import java.sql.Connection;
 import java.sql.Date;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -51,7 +48,6 @@ class HistoricoConsumoOracleRealDbTest {
 
         assertDoesNotThrow(() -> oracleWriter.salvar(historico));
 
-        // Verificar se foi inserido no Oracle
         Integer count = jdbcTemplate.queryForObject(
                 "SELECT COUNT(*) FROM HISTORICO_CONSUMO WHERE ITEM_ESTOQUE_ID = 1 AND HOSPITAL_ID = 1 AND QUANTIDADE_CONSUMIDA = 42 AND MES_REFERENCIA = ?",
                 Integer.class,
