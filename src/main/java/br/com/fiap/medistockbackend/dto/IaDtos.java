@@ -5,8 +5,6 @@ import jakarta.validation.constraints.Positive;
 
 public class IaDtos {
     
-    // Registro de historico (para alimentar a IA)
-
     public record HistoricoConsumoRequest(
             Long itemEstoqueId,
             Long hospitalId,
@@ -14,9 +12,6 @@ public class IaDtos {
             Integer quantidadeConsumida
     ) {}
 
-    // Tela "IA" (analise interna)
-
-    /** Corresponde ao topo da tela IA: "Analise interna 36/100", Criticos/Prioritarios/Previsoes. */
     public record AnaliseInternaResponse(
             int scoreOtimizacao,      // 0-100
             String classificacao,     // OK, ATENCAO, CRITICO
@@ -26,7 +21,6 @@ public class IaDtos {
             List<InsightItemResponse> insights
     ) {}
 
-    /** Corresponde a cada card de item critico na tela IA. */
     public record InsightItemResponse(
             Long itemEstoqueId,
             String itemNome,
@@ -38,18 +32,14 @@ public class IaDtos {
             int confiancaPercentual
     ) {}
 
-    //  Redistribuicao (alto custo / baixa demanda) 
-
-    /** Um hospital candidato a armazenar o insumo, com sua pontuacao. */
     public record CandidatoHospitalResponse(
             Long hospitalId,
             String hospitalNome,
             double demandaHistoricaMedia,
             double distanciaPonderadaKm,
-            double pontuacao // menor = melhor (custo de distancia ponderado pela demanda)
+            double pontuacao 
     ) {}
 
-    /** Se uma transferencia precisar ser feita, a rota mais rapida sugerida. */
     public record RotaSugeridaResponse(
             Long hospitalOrigemId,
             String hospitalOrigemNome,
@@ -72,6 +62,5 @@ public class IaDtos {
             String justificativaIA
     ) {}
 
-    /** Confirma uma sugestao da IA. Sem quantidade, transfere o saldo atual do item. */
     public record ConfirmarRedistribuicaoRequest(@Positive Integer quantidade) {}
 }

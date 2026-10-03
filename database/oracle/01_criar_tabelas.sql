@@ -1,5 +1,3 @@
--- Oracle AI Database Free 26ai. Execute com F5, como MEDISTOCK.
--- Criacao inicial: execute uma unica vez em um schema novo.
 SET DEFINE OFF
 SET SERVEROUTPUT ON
 WHENEVER SQLERROR EXIT FAILURE ROLLBACK

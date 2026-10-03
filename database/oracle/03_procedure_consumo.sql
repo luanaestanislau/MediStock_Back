@@ -1,6 +1,3 @@
--- Execute como MEDISTOCK com F5. Reexecutar atualiza esta procedure.
--- A procedure registra historico. Nao altera o saldo de estoque.
--- Sem COMMIT/ROLLBACK interno: a transacao pertence a quem a chamou.
 SET DEFINE OFF
 SET SERVEROUTPUT ON
 WHENEVER SQLERROR EXIT FAILURE ROLLBACK

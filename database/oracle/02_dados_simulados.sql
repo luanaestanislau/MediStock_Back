@@ -1,6 +1,3 @@
--- Dados totalmente ficticios para um schema de demonstracao vazio.
--- 3 hospitais, 12 itens, 72 historicos, 4 entregas e 4 transferencias.
--- Usuarios de login serao criados pela API, para gerar BCrypt corretamente.
 SET DEFINE OFF
 SET SERVEROUTPUT ON
 WHENEVER SQLERROR EXIT FAILURE ROLLBACK

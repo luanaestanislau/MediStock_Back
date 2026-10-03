@@ -6,7 +6,6 @@ import br.com.fiap.medistockbackend.model.NivelEstoque;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-/** Corresponde aos cards da tela "Estoque": nome, atual, min, status, local, barra de progresso. */
 public record ItemEstoqueResponse(
         Long id,
         String nome,
@@ -23,7 +22,7 @@ public record ItemEstoqueResponse(
         boolean vencido,
         boolean validadeProxima,
         long diasParaVencer,
-        double percentualEstoque // usado para a barra de progresso no front (0-100+)
+        double percentualEstoque 
 ) {
     public static ItemEstoqueResponse fromEntity(ItemEstoque item) {
         double percentual = item.getQuantidadeMinima() == 0

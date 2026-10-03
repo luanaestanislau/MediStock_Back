@@ -85,7 +85,6 @@ public class RedistribuicaoService {
         );
     }
 
-    /** Converte a recomendacao calculada pela IA em uma transferencia rastreavel. */
     public TransferenciaResponse confirmarSugestao(Long itemEstoqueId, Integer quantidadeSolicitada) {
         ItemEstoque item = itemEstoqueService.buscarEntidade(itemEstoqueId);
         if (!item.isAltoCustoBaixaDemanda()) {
