@@ -6,7 +6,7 @@ O MediStock organiza hospitais, insumos, históricos de consumo, entregas e tran
 
 Este README documenta a estrutura do banco, a configuração do projeto, os objetos PL/SQL, a execução local e os testes. Os **12 anexos** registram a integração inicial realizada em **26/09/2026**; os testes da consolidação estão identificados separadamente para reprodução e complementação das evidências.
 
-[Objetivos](#objetivos) · [Arquitetura](#arquitetura) · [DER e tabelas](#modelo) · [Execução](#execucao) · [Package](#package) · [Auditoria](#auditoria) · [SQL dinâmico](#dinamico) · [Testes](#testes) · [Evidências](#evidencias)
+[Objetivos](#objetivos) · [Arquitetura](#arquitetura) · [DER e tabelas](#modelo) · [Execução](#execucao) · [Package](#package) · [Auditoria](#auditoria) · [SQL dinâmico](#dinamico) · [Testes](#testes) · [Evidências](#evidencias) · [Pipeline CI/CD](docs/CI_CD.md)
 
 <a id="objetivos"></a>
 ## 1. Objetivos e requisitos atendidos pela implementação
