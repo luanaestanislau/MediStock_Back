@@ -37,3 +37,7 @@ build/
 *.db
 
 .DS_Store
+
+# Artefatos locais do pipeline
+logs/
+relatorio-execucao.md
