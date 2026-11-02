@@ -807,4 +807,4 @@ Para executar os testes Maven, sem a opção que os ignora:
 .\mvnw.cmd test
 ```
 
-Os testes que dependem de Oracle real exigem a configuração do banco correspondente. A conciliação da documentação e dos conflitos Git não equivale à execução dessa suíte ou dos testes SQL no ambiente local.
+Os testes que dependem de Oracle real só são executados quando `ORACLE_PASSWORD` está definida no ambiente; sem ela, a suíte os marca como ignorados. Para rodá-los, defina também `ORACLE_URL` e `ORACLE_USER` caso o banco não esteja em `//localhost:1521/FREEPDB1` com o usuário `MEDISTOCK`. A conciliação da documentação e dos conflitos Git não equivale à execução dessa suíte ou dos testes SQL no ambiente local.
