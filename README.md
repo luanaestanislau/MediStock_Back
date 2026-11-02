@@ -6,7 +6,7 @@ O MediStock organiza hospitais, insumos, históricos de consumo, entregas e tran
 
 Este README documenta a estrutura do banco, a configuração do projeto, os objetos PL/SQL, a execução local e os testes. Os **12 anexos** registram a integração inicial realizada em **26/09/2026**; os testes da consolidação estão identificados separadamente para reprodução e complementação das evidências.
 
-[Objetivos](#objetivos) · [Arquitetura](#arquitetura) · [DER e tabelas](#modelo) · [Execução](#execucao) · [Package](#package) · [Auditoria](#auditoria) · [SQL dinâmico](#dinamico) · [Testes](#testes) · [Evidências](#evidencias)
+[Objetivos](#objetivos) · [Arquitetura](#arquitetura) · [DER e tabelas](#modelo) · [Execução](#execucao) · [Package](#package) · [Auditoria](#auditoria) · [SQL dinâmico](#dinamico) · [Testes](#testes) · [Evidências](#evidencias) · [Pipeline CI/CD](docs/CI_CD.md)
 
 <a id="objetivos"></a>
 ## 1. Objetivos e requisitos atendidos pela implementação
@@ -807,4 +807,4 @@ Para executar os testes Maven, sem a opção que os ignora:
 .\mvnw.cmd test
 ```
 
-Os testes que dependem de Oracle real exigem a configuração do banco correspondente. A conciliação da documentação e dos conflitos Git não equivale à execução dessa suíte ou dos testes SQL no ambiente local.
+Os testes que dependem de Oracle real só são executados quando `ORACLE_PASSWORD` está definida no ambiente; sem ela, a suíte os marca como ignorados. Para rodá-los, defina também `ORACLE_URL` e `ORACLE_USER` caso o banco não esteja em `//localhost:1521/FREEPDB1` com o usuário `MEDISTOCK`. A conciliação da documentação e dos conflitos Git não equivale à execução dessa suíte ou dos testes SQL no ambiente local.
