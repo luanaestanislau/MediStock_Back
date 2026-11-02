@@ -66,7 +66,7 @@ jobs:
         run: python3 .github/scripts/relatorio_testes.py "Build e testes (SQLite/in-memory)"
 
       - name: Publicar artefato .jar
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: medistock-jar
           path: target/*.jar
@@ -75,7 +75,7 @@ jobs:
 
       - name: Publicar logs e relatorios do build
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: relatorios-build
           path: |
@@ -166,7 +166,7 @@ jobs:
 
       - name: Publicar logs e relatorios da integracao
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: relatorios-oracle
           path: |
@@ -287,7 +287,7 @@ jobs:
 
       - name: Publicar logs do deploy
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: relatorios-deploy
           path: logs/
@@ -318,7 +318,7 @@ jobs:
         run: python3 .github/scripts/relatorio_execucao.py
 
       - name: Publicar o relatorio consolidado
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: relatorio-execucao
           path: relatorio-execucao.md
