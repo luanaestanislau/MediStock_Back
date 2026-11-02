@@ -44,7 +44,7 @@ jobs:
     name: Build e testes
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Configurar JDK ${{ env.JAVA_VERSION }}
         uses: actions/setup-java@v4
@@ -114,7 +114,7 @@ jobs:
       ORACLE_SYSTEM_PASSWORD: Ci_MediStock#2026
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Configurar JDK ${{ env.JAVA_VERSION }}
         uses: actions/setup-java@v4
@@ -193,7 +193,7 @@ jobs:
       ORACLE_PASSWORD: ${{ secrets.ORACLE_PASSWORD }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Configurar JDK ${{ env.JAVA_VERSION }}
         uses: actions/setup-java@v4
@@ -302,7 +302,7 @@ jobs:
     needs: [build, oracle-it, deploy]
     if: always()
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Baixar todos os artefatos
         uses: actions/download-artifact@v4
