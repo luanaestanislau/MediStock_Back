@@ -6,6 +6,7 @@ import br.com.fiap.medistockbackend.dto.RegistroRequest;
 import br.com.fiap.medistockbackend.dto.UsuarioResponse;
 import br.com.fiap.medistockbackend.exception.CredenciaisInvalidasException;
 import br.com.fiap.medistockbackend.exception.EmailCadastradoException;
+import br.com.fiap.medistockbackend.model.AcaoAuditoria;
 import br.com.fiap.medistockbackend.model.Usuario;
 import br.com.fiap.medistockbackend.repository.UsuarioRepository;
 import br.com.fiap.medistockbackend.security.JwtUtil;
@@ -21,6 +22,7 @@ public class AuthService {
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
+    private final AuditoriaService auditoriaService;
 
     @Transactional
     public AuthResponse registrar(RegistroRequest request) {
@@ -36,18 +38,22 @@ public class AuthService {
                 .build();
 
         usuarioRepository.save(usuario);
+        auditoriaService.registrarEventoAuth(AcaoAuditoria.REGISTRO, usuario.getEmailInstitucional(), null);
 
         return gerarAuthResponse(usuario);
     }
 
     public AuthResponse login(LoginRequest request) {
         Usuario usuario = usuarioRepository.findByEmailInstitucionalIgnoreCase(request.emailInstitucional())
-                .orElseThrow(CredenciaisInvalidasException::new);
+                .orElse(null);
 
-        if (!passwordEncoder.matches(request.senha(), usuario.getSenhaHash())) {
+        if (usuario == null || !passwordEncoder.matches(request.senha(), usuario.getSenhaHash())) {
+            auditoriaService.registrarEventoAuth(AcaoAuditoria.LOGIN_FALHA, request.emailInstitucional(),
+                    usuario == null ? "E-mail nao cadastrado" : "Senha invalida");
             throw new CredenciaisInvalidasException();
         }
 
+        auditoriaService.registrarEventoAuth(AcaoAuditoria.LOGIN, usuario.getEmailInstitucional(), null);
         return gerarAuthResponse(usuario);
     }
 
