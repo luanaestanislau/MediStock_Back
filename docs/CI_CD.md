@@ -9,7 +9,7 @@ Pipeline de integração e entrega contínua em **GitHub Actions**, definido em
 | --- | --- |
 | `push` na branch `main` | Build, testes, integração Oracle, deploy e relatório |
 | `pull_request` para `main` | Build, testes e integração Oracle (sem deploy) |
-| Execução manual (`workflow_dispatch`) | Tudo, com a opção **carga inicial** para criar tabelas e dados no schema alvo |
+| Execução manual (`workflow_dispatch`) | Tudo, com as opções **carga inicial** (tabelas e dados em schema novo) e **migração de auditoria** (criação única da `AUDITORIA_CONSUMO`) |
 
 ## Jobs
 
@@ -20,20 +20,38 @@ completo do build junto dos relatórios do Surefire.
 
 ### 2. `oracle-it` — Integração com Oracle
 Sobe um **Oracle Database Free** real como *service container*
-(`gvenzl/oracle-free`, serviço `FREEPDB1`, usuário `MEDISTOCK`), aplica os
-scripts de [database/oracle](../database/oracle) na ordem
-`01 → 02 → 03 → 06 → 04 → 05 → 07` e roda a suíte novamente com as variáveis
-`ORACLE_*` preenchidas — o que habilita o teste
+(`gvenzl/oracle-free`, serviço `FREEPDB1`, usuário `MEDISTOCK`) e aplica os
+scripts de [database/oracle](../database/oracle) com o Oracle SQLcl, nesta ordem:
+
+| Etapa | Conexão | Scripts |
+| --- | --- | --- |
+| Permissão da trigger | `SYSTEM` | `06_permissoes_trigger` |
+| Modelo e carga | `MEDISTOCK` | `01_criar_tabelas`, `02_dados_simulados` |
+| Procedure e Parte 3 | `MEDISTOCK` | `03_procedure_consumo`, `06_parte3_plsql` |
+| Consolidação | `MEDISTOCK` | `07_criar_auditoria`, `08_criar_package`, `09_adaptar_procedure`, `10_criar_trigger` |
+| Validações | `MEDISTOCK` | `04_validar_banco`, `11_validar_objetos` |
+| Testes e exemplos | `MEDISTOCK` | `05_testar_procedure`, `07_parte3_exemplos`, `12_testar_consolidacao`, `13_demo_sql_dinamico` |
+
+Cada script traz `WHENEVER SQLERROR EXIT FAILURE` e as próprias verificações:
+`11` exige os seis objetos da consolidação válidos com a trigger habilitada e
+`12` roda as verificações do package desfazendo os dados de teste por
+`ROLLBACK TO SAVEPOINT`. Em seguida o job roda a suíte Java novamente com as
+variáveis `ORACLE_*` preenchidas — o que habilita o teste
 `HistoricoConsumoOracleRealDbTest`, anotado com
 `@EnabledIfEnvironmentVariable(named = "ORACLE_PASSWORD")`.
 
-Isso valida, a cada commit, que as tabelas, a procedure `PR_REGISTRAR_CONSUMO`
-e os objetos PL/SQL da Parte 3 compilam e funcionam contra um banco de verdade.
+Isso valida, a cada commit, que as tabelas, a procedure `PR_REGISTRAR_CONSUMO`,
+os objetos PL/SQL da Parte 3 e a consolidação em package, auditoria e trigger
+compilam e funcionam contra um banco de verdade.
 
 ### 3. `deploy` — Back-end + Oracle
-1. Aplica os objetos PL/SQL no **banco Oracle alvo** com o Oracle SQLcl
-   (`03`, `06` e a validação `04`; `01` e `02` apenas quando a carga inicial é
-   solicitada na execução manual).
+1. Aplica os objetos PL/SQL no **banco Oracle alvo** com o Oracle SQLcl: os
+   recriáveis a cada execução (`03_procedure_consumo`, `06_parte3_plsql`,
+   `08_criar_package`, `09_adaptar_procedure`, `10_criar_trigger`) e as
+   validações `04_validar_banco` e `11_validar_objetos`. `01_criar_tabelas` e
+   `02_dados_simulados` só rodam com a opção **carga inicial**, e
+   `07_criar_auditoria` só com a opção **migração de auditoria** — os três
+   falham de propósito em um schema que já os recebeu.
 2. Constrói a imagem a partir do [Dockerfile](../Dockerfile) e a publica no
    **GitHub Container Registry**, com as tags `:<sha>` e `:latest`.
 3. Opcionalmente faz o *rollout* por SSH no servidor, substituindo o container
@@ -58,6 +76,20 @@ aba **Actions**.
 | `relatorios-oracle` | `logs/integracao-oracle.log`, `logs/banco/*.log` (saída de cada script SQL), relatórios do Surefire |
 | `relatorios-deploy` | `logs/banco/*.log` do banco alvo, `logs/rollout.log`, `logs/smoke-test.log` |
 | `relatorio-execucao` | Relatório consolidado em Markdown |
+
+## Pré-requisitos no banco alvo
+
+O usuário do deploy precisa de `CREATE TRIGGER` para que `10_criar_trigger`
+compile. A concessão é única e exige `SYSTEM`, fora do alcance do pipeline:
+
+```sql
+-- conectado como SYSTEM / FREEPDB1
+GRANT CREATE TRIGGER TO MEDISTOCK;
+```
+
+Em um schema novo, a primeira execução manual deve marcar **carga inicial** e
+**migração de auditoria** juntas; nas execuções seguintes, as duas opções ficam
+desmarcadas.
 
 ## Secrets do repositório
 

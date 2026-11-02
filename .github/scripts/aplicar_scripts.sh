@@ -11,7 +11,7 @@ raiz="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 mkdir -p "$raiz/logs/banco"
 cd "$raiz"
 
-echo "## Scripts aplicados no Oracle" >> "${GITHUB_STEP_SUMMARY:-/dev/null}"
+echo "## Scripts aplicados no Oracle como ${usuario}" >> "${GITHUB_STEP_SUMMARY:-/dev/null}"
 echo "| Script | Resultado |" >> "${GITHUB_STEP_SUMMARY:-/dev/null}"
 echo "| --- | --- |" >> "${GITHUB_STEP_SUMMARY:-/dev/null}"
 

@@ -21,6 +21,10 @@ on:
         description: "Executar 01_criar_tabelas e 02_dados_simulados no banco alvo (apenas em schema novo)"
         type: boolean
         default: false
+      migracao_auditoria:
+        description: "Executar 07_criar_auditoria no banco alvo (migracao unica; falha se AUDITORIA_CONSUMO ja existir)"
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -107,6 +111,7 @@ jobs:
       ORACLE_URL: jdbc:oracle:thin:@//localhost:1521/FREEPDB1
       ORACLE_USER: MEDISTOCK
       ORACLE_PASSWORD: Ci_MediStock#2026
+      ORACLE_SYSTEM_PASSWORD: Ci_MediStock#2026
 
     steps:
       - uses: actions/checkout@v4
@@ -121,7 +126,14 @@ jobs:
       - name: Instalar Oracle SQLcl
         uses: ./.github/actions/sqlcl
 
-      - name: Aplicar os scripts do banco (01 a 07)
+      - name: Conceder ao MEDISTOCK a permissao da trigger
+        shell: bash
+        run: |
+          .github/scripts/aplicar_scripts.sh \
+            "system" "$ORACLE_SYSTEM_PASSWORD" "//localhost:1521/FREEPDB1" \
+            06_permissoes_trigger.sql
+
+      - name: Aplicar os scripts do banco (modelo, Parte 3 e consolidacao)
         shell: bash
         run: |
           .github/scripts/aplicar_scripts.sh \
@@ -130,9 +142,16 @@ jobs:
             02_dados_simulados.sql \
             03_procedure_consumo.sql \
             06_parte3_plsql.sql \
+            07_criar_auditoria.sql \
+            08_criar_package.sql \
+            09_adaptar_procedure.sql \
+            10_criar_trigger.sql \
             04_validar_banco.sql \
+            11_validar_objetos.sql \
             05_testar_procedure.sql \
-            07_parte3_exemplos.sql
+            07_parte3_exemplos.sql \
+            12_testar_consolidacao.sql \
+            13_demo_sql_dinamico.sql
 
       - name: Executar os testes de integracao contra o Oracle
         shell: bash
@@ -200,7 +219,12 @@ jobs:
           if [ "${{ inputs.carga_inicial }}" = "true" ]; then
             scripts="01_criar_tabelas.sql 02_dados_simulados.sql"
           fi
-          scripts="$scripts 03_procedure_consumo.sql 06_parte3_plsql.sql 04_validar_banco.sql"
+          if [ "${{ inputs.migracao_auditoria }}" = "true" ]; then
+            scripts="$scripts 07_criar_auditoria.sql"
+          fi
+          scripts="$scripts 03_procedure_consumo.sql 06_parte3_plsql.sql"
+          scripts="$scripts 08_criar_package.sql 09_adaptar_procedure.sql 10_criar_trigger.sql"
+          scripts="$scripts 04_validar_banco.sql 11_validar_objetos.sql"
           .github/scripts/aplicar_scripts.sh \
             "${ORACLE_USER:-MEDISTOCK}" "$ORACLE_PASSWORD" "$origem" $scripts
 
